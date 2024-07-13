@@ -10,12 +10,12 @@ const Navbar = () => {
     };
 
     return (
-        <nav className='flex justify-between items-center p-4'>
+        <nav className='flex justify-between items-center py-8 px-24 bg-black'>
             <div>
-                <h1 className='text-[#9333ea] text-xl font-bold'>MUZUP</h1>
+                <h1 className='text-primary text-xl font-bold'>MUZUP</h1>
             </div>
             <div className='hidden md:flex'>
-                <ul className='flex space-x-4'>
+                <ul className='flex space-x-4 text-white'>
                     <li>About Us</li>
                     <li>How it works?</li>
                     <li>Pricing</li>
