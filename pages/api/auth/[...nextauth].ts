@@ -1,5 +1,3 @@
-// pages/api/auth/[...nextauth].ts
-
 import NextAuth from 'next-auth';
 import SpotifyProvider from 'next-auth/providers/spotify';
 

@@ -19,6 +19,11 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
           
       },
+      fontFamily: {
+        playfair: ['var(--font-playfair)', 'serif'],
+        nunito: ['var(--font-nunito)', 'sans-serif'],
+        raleway: ['var(--font-raleway)', 'sans-serif'],
+      },
     },
   },
   plugins: [],

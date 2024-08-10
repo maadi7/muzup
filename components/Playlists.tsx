@@ -10,7 +10,7 @@ export default function Playlists() {
   if (error) return <div>Failed to load</div>;
   if (!data) return <div>Loading...</div>;
   if (!data.items || !Array.isArray(data.items)) return <div>No playlists found</div>;
-  {console.log(data)}
+  
 
   return (
     <div>

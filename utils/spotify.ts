@@ -1,7 +1,9 @@
 // lib/spotify.ts
 import axios from 'axios';
-
 const SPOTIFY_API_BASE_URL = 'https://api.spotify.com/v1';
+
+
+
 
 const getSpotifyData = async (url: string, accessToken: string) => {
   try {
@@ -27,4 +29,7 @@ export const getUserTopArtists = async (accessToken: string) => {
 
 export const getUserTopTracks = async (accessToken: string) => {
   return getSpotifyData('/me/top/tracks', accessToken);
+};
+export const getUserRecentlyPlayed = async (accessToken: string) => {
+  return getSpotifyData('/me/player/recently-played', accessToken);
 };

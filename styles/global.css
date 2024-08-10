@@ -32,3 +32,22 @@ body {
     text-wrap: balance;
   }
 }
+.nav-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s, color 0.3s;
+}
+
+.group:hover .nav-icon-wrapper {
+  transform: scale(1.1); /* Scale factor to go from 24px to 32px */
+}
+
+/* .nav-icon {
+  transition: color 0.3s;
+} */
+
+/* .group:hover .nav-icon {
+  color: #9333ea;
+} */
+
