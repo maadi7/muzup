@@ -5,7 +5,7 @@ import Leftbar from '@/components/Leftbar'
 import Rightbar from '@/components/Rightbar'
 import React, {useEffect} from 'react';
 import { useRouter } from 'next/router';
-import { useSession, signOut, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 
 
 const Dashboard = () => {
@@ -17,11 +17,14 @@ const Dashboard = () => {
     if (!session?.user) {
       router.replace('/user-info');
     }
+   
     console.log(session);
+    
+    
   }, [session, status, router]);
 
   if (!session) {
-    return null; // Return null or a loading spinner while checking session
+    return null; 
   }
   return (
     <div className='w-full h-full flex'>

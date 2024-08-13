@@ -234,6 +234,7 @@ const UserInfo = () => {
           setSpotifySession({
             accessToken: session.accessToken,
             expiresAt: session.expires,
+            refreshToken: session.refreshToken,
             user: {
               email: session.user.email,
               image: session.user.image,

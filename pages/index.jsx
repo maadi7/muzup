@@ -33,9 +33,8 @@ export default function Home() {
         }
       }
     };
-    
   
-    if (status === 'loading') return; // Do nothing while loading
+    if (status === 'loading') return; 
   
     if (session?.user && user) {
       router.replace('/dashboard');
@@ -45,6 +44,7 @@ export default function Home() {
       setSpotifySession({
         accessToken: session.accessToken,
         expiresAt: session.expires,
+        refreshToken: session.refreshToken,
         user: {
           email: session.user.email,
           image: session.user.image,
@@ -53,18 +53,14 @@ export default function Home() {
       });
     }
    
-
     if (session?.user) {
       fetchUserData();
     }
 
-    
-  
     console.log(session);
   }, [session, status, router, setSpotifySession]);
 
 
-  console.log('Session:', session);
 
   return (
     <div>

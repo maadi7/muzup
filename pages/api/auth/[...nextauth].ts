@@ -22,10 +22,12 @@ export default NextAuth({
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token; // If using refresh tokens
       }
+    
       return token;
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken;
+      session.refreshToken = token.refreshToken;
       return session;
     },
   },

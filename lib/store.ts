@@ -21,6 +21,7 @@ export type User = {
 export type SpotifySession = {
     accessToken: string;
     expiresAt: string;
+    refreshToken: string;
     user: {
         email: string;
         image: string;
