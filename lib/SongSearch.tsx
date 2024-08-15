@@ -51,6 +51,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSelectSong }) => {
     
         // If successful, update the results state
         setResults(data.tracks.items);
+        console.log(data);
     
       } catch (error) {
         if (error.response?.status === 401) {
@@ -70,6 +71,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ onSelectSong }) => {
               },
             });
             setResults(data.tracks.items);
+            console.log(data);
           } catch (retryError) {
             console.error('Error searching songs after token refresh:', retryError);
           }

@@ -8,11 +8,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import SongSearch from '@/lib/SongSearch';
+import { useUserStore } from '../lib/store';
+import playSong from "../utils/playSong"
+import {  VolumeUp as VolumeUpIcon, VolumeOff as VolumeOffIcon } from '@mui/icons-material';
 
 interface Story {
   id: number;
   username: string;
   img: string;
+  songId?: string;
 }
 
 interface StoryGroup {
@@ -52,14 +56,56 @@ interface Track {
   album: { images: { url: string }[] };
 }
 
+
+
 const StoryView: React.FC<StoryViewProps> = ({ storyGroup, currentStoryIndex, onClose, onPrev, onNext }) => {
   const { stories } = storyGroup;
   const currentStory = stories[currentStoryIndex];
   const [progress, setProgress] = useState(0);
+  const [isMuted, setIsMuted] = useState(false); // State to manage mute/unmute
+  const { spotifySession } = useUserStore();
+  const audioRef = useRef<HTMLAudioElement | null>(null); // Ref to control the audio element
+
+  useEffect(() => {
+    const play = async () => {
+      if (currentStory?.songId && spotifySession?.accessToken) {
+        if (audioRef.current) {
+          audioRef.current.pause(); // Pause the currently playing audio
+          audioRef.current.src = ''; // Clear the current source
+        }
+
+        // Play the new story's song
+        const audio = await playSong(currentStory?.songId, spotifySession?.accessToken);
+        if (audio) {
+          audioRef.current = audio; // Update the ref to the new audio element
+          audio.muted = isMuted; // Apply the mute setting
+        } else {
+          console.warn('No audio returned from playSong.');
+        }
+      }
+    };
+
+    play();
+
+    return () => {
+      // Clean up: stop audio when the component is unmounted or the story changes
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+    };
+  }, [currentStory?.songId, spotifySession, currentStoryIndex]);
+
+  useEffect(() => {
+    // Apply mute setting to the current audio
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   useEffect(() => {
     const startTime = Date.now();
-    const duration = 5000; // 15 seconds
+    const duration = 20000; // 20 seconds
 
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -84,6 +130,13 @@ const StoryView: React.FC<StoryViewProps> = ({ storyGroup, currentStoryIndex, on
             style={{ width: `${progress}%`, transition: 'width 0.1s linear' }}
           ></div>
         </div>
+        {/* Mute button */}
+        <button
+          onClick={() => setIsMuted(!isMuted)}
+          className="absolute top-4 right-16 text-white bg-gray-800 rounded-full p-2"
+        >
+          {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+        </button>
         <img src={currentStory.img} alt="Story" className="w-full h-full object-cover" />
         <button
           onClick={onClose}
@@ -119,9 +172,11 @@ const Feed: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [openStoryIndex, setOpenStoryIndex] = useState<number | null>(null);
   const [selectedSong, setSelectedSong] = useState<Track | null>(null);
+  const { spotifySession } = useUserStore();
 
   const handleSelectSong = (song: Track) => {
     setSelectedSong(song);
+    console.log(song);
   };
   
   const [openStoryGroupIndex, setOpenStoryGroupIndex] = useState<number | null>(null);
@@ -245,8 +300,8 @@ const Feed: React.FC = () => {
       userId: 1,
       username: 'user1',
       stories: [
-        { id: 1, username: 'user1', img: 'https://res.cloudinary.com/dnl96eqgs/image/upload/v1723322222/vbyejwrl3zo2ci4qtyvq.png' },
-        { id: 2, username: 'user1', img: 'https://res.cloudinary.com/dnl96eqgs/image/upload/v1723321610/iovll4uhqiwwysgfy5kz.png' }
+        { id: 1, username: 'user1', img: 'https://res.cloudinary.com/dnl96eqgs/image/upload/v1723322222/vbyejwrl3zo2ci4qtyvq.png', songId: "0tgVpDi06FyKpA1z0VMD4v" },
+        { id: 2, username: 'user1', img: 'https://res.cloudinary.com/dnl96eqgs/image/upload/v1723321610/iovll4uhqiwwysgfy5kz.png', songId: "0tgVpDi06FyKpA1z0VMD4v" }
       ]
     },
     {
@@ -338,12 +393,12 @@ const Feed: React.FC = () => {
       <div className="px-16 mb-6">
         <div className="bg-white p-4 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-4 font-raleway">Create a New Post</h3>
-          <input
-            type="text"
+          <textarea
+  
             placeholder="Write a caption..."
             value={newPost.caption}
             onChange={(e) => setNewPost({ ...newPost, caption: e.target.value })}
-            className="w-full p-2 border rounded-lg mb-4"
+            className="w-full h-32 p-2 border rounded-lg mb-4"
           />
           
           <input
