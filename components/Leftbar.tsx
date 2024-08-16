@@ -23,7 +23,7 @@ const Leftbar = () => {
   ];
 
   return (
-    <div className='flex flex-col items-start py-6 pl-24 sticky top-0 left-0'>
+    <div className='flex flex-col items-start py-6 px-6 sticky top-0 left-0'>
       <div>
         <h1 className='text-black text-4xl h-[15vh] font-bold font-playfair'>MUZUP</h1>
       </div>

@@ -28,10 +28,10 @@ const Dashboard = () => {
   }
   return (
     <div className='w-full h-full flex'>
-      <div className='w-1/4 border-r-2'>
+      <div className='min-w-1/6 border-r-2'>
         <Leftbar />
       </div>
-      <div className='w-1/2 border-l-2'>
+      <div className='w-[60%] border-l-2'>
         <Feed />
       </div>
       <div className='w-1/5'>

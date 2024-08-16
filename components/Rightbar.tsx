@@ -21,7 +21,7 @@ const suggestions = [
 
 const Rightbar = () => {
   return (
-    <div className="p-4 font-raleway">
+    <div className="py-4 pr-4 font-raleway">
       <h2 className="text-lg font-semibold mb-8 font-raleway">Suggestions for You</h2>
       <div>
         {suggestions.map(user => (
