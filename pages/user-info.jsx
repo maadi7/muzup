@@ -29,7 +29,7 @@ const UserInfo = () => {
     const fetchUserData = async () => {
       if (session?.user) {
         try {
-          const { data: user } = await axios.get("http://localhost:3001/api/user/email", {
+          const { data: user } = await axios.get("http://localhost:5555/api/user/email", {
             params: { email: session.user.email },
           });
           addUser(user);
@@ -203,7 +203,7 @@ const UserInfo = () => {
         console.log('Terms Accepted:', recentlyPlayed);
         
 
-        const response = await axios.post(`http://localhost:3001/api/auth/form-sumbit`, {
+        const response = await axios.post(`http://localhost:5555/api/auth/form-sumbit`, {
           username: username,
           email: session?.user?.email,
           birthdate: birthdate,
@@ -368,10 +368,7 @@ const UserInfo = () => {
             Submit
           </button>
         </form>
-        <h3>Hi, {session?.user?.name}</h3>
-        <button className='ml-5 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700'  onClick={() => signOut()}>Sign out</button>
-        <h3>Hi, {session?.user?.name}</h3>
-        <button className='ml-5 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700'  onClick={() => signIn()}>Sign out</button>
+        
       </div>
     </>
   );

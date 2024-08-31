@@ -134,7 +134,7 @@ const Feed: React.FC = () => {
           toast.success('Post submitted successfully!');
         } catch (error) {
           console.log(error);
-          toast.error(error.message);
+          toast.error(error?.message);
         }
 
       } catch (error) {

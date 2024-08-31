@@ -22,7 +22,7 @@ export default function Home() {
       if (session?.user) {
         try {
           console.log(session.user.email);
-          const { data: user } = await axios.get("http://localhost:3001/api/user/email", {
+          const { data: user } = await axios.get("http://localhost:5555/api/user/email", {
             params: { email: session.user.email },
           });
           console.log(user);
@@ -35,8 +35,12 @@ export default function Home() {
     };
   
     if (status === 'loading') return; 
+
+    if(session?.user && !user){
+      router.replace("/user-info");
+    }
   
-    if (session?.user && user) {
+    if (session?.user && user?._id) {
       router.replace('/dashboard');
     }
 

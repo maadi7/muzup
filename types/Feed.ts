@@ -41,3 +41,10 @@ export type User = {
     pendingRequests: Array<string>;
     requestedTo: Array<string>;
 };
+
+export interface PostComment{
+    id: string;
+    text: string;
+    name: string;
+    _id: string;    
+}
