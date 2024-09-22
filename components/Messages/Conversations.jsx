@@ -35,8 +35,6 @@ const Conversations = () => {
     {conversation.map((friend, index) => (
       <Link     key={index} href={`/messages/${friend.members.find(m => m !== user._id)}`}  >
       <div 
-    
-        // onClick={() => handleSelectFriend(friend.members.find(m => m !== user._id))}
         className={`cursor-pointer }`}
         >
         <FriendList 

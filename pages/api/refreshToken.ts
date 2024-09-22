@@ -2,12 +2,11 @@ import axios from 'axios';
 import { useUserStore } from '../../lib/store';
 
 const refreshToken = async () => {
-  console.log("here");
+  
   const { spotifySession, setSpotifySession } = useUserStore.getState();
 
   if (!spotifySession) return;
 
-  console.log(process.env.SPOTIFY_CLIENT_ID);
   try {
     const response = await axios.post('https://accounts.spotify.com/api/token', {
       grant_type: 'refresh_token',

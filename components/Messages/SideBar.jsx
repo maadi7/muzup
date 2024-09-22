@@ -18,7 +18,7 @@ const SideBar = () => {
         { href: "#", icon: <SearchIcon style={{ fontSize: iconSize }} className="nav-icon" />, onClick: () => setIsModalVisible(true) },
         { href: "/messages", icon: <MessageIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
         { href: "/notifications", icon: <NotificationsIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
-        { href: "/profile", src: spotifySession?.user?.image }
+        { href: `/profile/${user?._id}`, src: spotifySession?.user?.image }
       ];
 
   return (

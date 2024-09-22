@@ -15,6 +15,7 @@ import { useAudioContext } from '../context/AudioContext';
 import SendIcon from '@mui/icons-material/Send';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import { formatDistanceToNow, differenceInHours, differenceInDays } from 'date-fns';
+import Link from 'next/link';
 
 let currentAudioPost: HTMLAudioElement | null = null;
 
@@ -225,6 +226,7 @@ useEffect(()=>{
   return (
     <div className="mb-6 border-b pb-4 ">
       <div className="flex items-center mb-4">
+        <Link href={`/profile/${currentUser?._id}`} >
         <div className="w-10 h-10 rounded-full overflow-hidden">
           <Image
             src={currentUser?.profilePic ? currentUser.profilePic : noProfile}
@@ -234,6 +236,7 @@ useEffect(()=>{
             height={40}
           />
         </div>
+        </Link>
         <div className="ml-4">
           <h3 className="font-semibold font-nunito">{currentUser?.username}</h3>
         </div>

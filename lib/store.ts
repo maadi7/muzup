@@ -16,6 +16,9 @@ export type User = {
     followings: any;
     pendingRequests: any;
     requestedTo: any;
+    blockedByMe: Array<String>;
+    isPrivate: boolean;
+    bio?:string;
 };
 
 export type SpotifySession = {

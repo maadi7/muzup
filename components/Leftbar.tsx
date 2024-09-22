@@ -7,19 +7,21 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import CloseIcon from '@mui/icons-material/Close';
 import Image from 'next/image';
+import { useUserStore } from '@/lib/store';
 
 const Leftbar = () => {
   const { data: session } = useSession();
   const router = useRouter();
   const iconSize = 28;
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const { user } = useUserStore();
 
   const navigation = [
     { name: "Home", href: "/dashboard", icon: <HomeIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
     { name: "Search", href: "#", icon: <SearchIcon style={{ fontSize: iconSize }} className="nav-icon" />, onClick: () => setIsModalVisible(true) },
     { name: "Messages", href: "/messages", icon: <MessageIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
     { name: "Notifications", href: "/notifications", icon: <NotificationsIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
-    { name: "Profile", href: "/profile", src: session?.user.image }
+    { name: "Profile", href: `/profile/${user?._id}`, src: session?.user.image }
   ];
 
   return (

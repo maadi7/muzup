@@ -12,14 +12,10 @@ import Conversations from '../../components/Messages/Conversations';
 const Messages = () => {
   const [selectedFriendId, setSelectedFriendId] = useState(null);
   const [conversation, setConversation] = useState([]);
-  const { messages, sendMessage } = useSocket();
   const url = process.env.NEXT_PUBLIC_SERVER_URL;
-  const { spotifySession, user } = useUserStore();
-
+  const {  user } = useUserStore();
   const router = useRouter();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
- 
+  
 
   useEffect(() => {
     const getConversation = async () => {

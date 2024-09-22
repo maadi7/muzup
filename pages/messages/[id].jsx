@@ -7,6 +7,7 @@ import SendIcon from '@mui/icons-material/Send';
 import axios from 'axios';
 import useSocket from '../../hooks/useSocket';
 import MatchModal from '../../components/MatchModel';
+import Image from 'next/image';
 
 const Chat = () => {
   const { user } = useUserStore();
@@ -16,6 +17,7 @@ const Chat = () => {
   const [currentFriend, setCurrentFriend] = useState(null);
   const [messages, setMessages] = useState([]);
   const [conversationId, setConversationId] = useState(null);
+  const [members, setMembers]  =useState([]);
   const [newMessages, setNewMessages] = useState('');
   const { messages: socketMessages, sendMessage } = useSocket();
   const messagesEndRef = useRef(null);
@@ -42,15 +44,18 @@ const Chat = () => {
     const getConversations = async () => {
       if (id) {
         try {
-          const { data } = await axios.get(`${url}/api/conversation/find/${user?._id}/${id}`);
+          const { data } = await axios.get(`${url}/api/conversation/find/${user?._id}/${paramsId}`);
           setConversationId(data._id);
+          setMembers(data.members);
+          console.log(members);
+          console.log(paramsId);
         } catch (error) {
           console.log(error);
         }
       }
     };
     getConversations();
-  }, [id, url, user]);
+  }, [paramsId, user]);
 
   useEffect(() => {
     const getMessages = async () => {
@@ -68,7 +73,7 @@ const Chat = () => {
     if (conversationId) {
       getMessages();
     }
-  }, [conversationId, url]);
+  }, [conversationId]);
 
   useEffect(() => {
     const fetchFriend = async () => {
@@ -85,6 +90,7 @@ const Chat = () => {
   }, [id, url]);
 
   const handleSendMessage = async (e) => {
+    
     e.preventDefault();
     if (newMessages === "") return;
     
@@ -99,7 +105,7 @@ const Chat = () => {
     };
     try {
       const res = await axios.post(`${url}/api/messages`, message);
-      setMessages(prev => [...prev, {...res.data, time: currentTime, sender: user?._id}]);
+      setMessages(prev => [...prev, {...res.data, time: currentTime}]);
       setNewMessages('');
     } catch (error) {
       console.log(error);
@@ -146,31 +152,33 @@ const Chat = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 ">
-          {messages?.map((message, index) => (
-            <div
-              key={index}
-              className={`mb-2 p-2 rounded-md flex items-end ${
-                message.sender === user?._id  ? 'flex-row-reverse' : 'flex-row'
-              }`}
-            >
-              {message.sender !== user?._id &&
-                <img
-                  src={currentFriend?.profilePic}
-                  alt={currentFriend?.username}
-                  className="w-8 h-8 rounded-full mx-2 mb-2"
-                />
-              }
+        {messages?.map((message, index) => (
+ //message.conversationId === conversationId && (
               <div
-                className={`px-3 py-2 rounded-lg max-w-xs font-nunito font-semibold text-start ${
-                  message.sender === user?._id ? 'bg-purple-100 text-right' : 'bg-green-100 text-left' 
+                key={index}
+                className={`mb-2 p-2 rounded-md flex items-end ${
+                  message.sender === user?._id ? 'flex-row-reverse' : 'flex-row'
                 }`}
               >
-                <p>{message.text}
-                <sub className="text-[10px] text-gray-500 p-2 ">{message.time}</sub>
-                </p>
+                {message.sender !== user?._id &&
+                  <img
+                    src={currentFriend?.profilePic}
+                    alt={currentFriend?.username}
+                    className="w-8 h-8 rounded-full mx-2 mb-2"
+                  />
+                }
+                <div
+                  className={`px-3 py-2 rounded-lg max-w-xs font-nunito font-semibold text-start ${
+                    message.sender === user?._id ? 'bg-purple-100 text-right' : 'bg-green-100 text-left'
+                  }`}
+                >
+                  <p>{message.text}
+                  <sub className="text-[10px] text-gray-500 p-2">{message.time}</sub>
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
           <div ref={messagesEndRef} />
         </div>
 
