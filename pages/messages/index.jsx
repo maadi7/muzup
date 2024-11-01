@@ -35,10 +35,7 @@ const Messages = () => {
     setSelectedFriendId(friendId);
   }
 
-  // Find selected friend's conversation details
-  const selectedFriend = conversation.find(friend => 
-    friend.members.includes(selectedFriendId)
-  );
+
 
   return (
     <div className="flex w-full h-screen">

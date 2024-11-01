@@ -43,11 +43,71 @@ body {
   transform: scale(1.1); /* Scale factor to go from 24px to 32px */
 }
 
-/* .nav-icon {
-  transition: color 0.3s;
-} */
+.online-status {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+}
 
-/* .group:hover .nav-icon {
-  color: #9333ea;
-} */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.online .status-dot {
+  background-color: #4CAF50;
+}
+
+.offline .status-dot {
+  background-color: #9E9E9E;
+}
+
+.connection-status {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+}
+
+.connection-status.connected {
+  background-color: #E8F5E9;
+  color: #4CAF50;
+}
+
+.connection-status.disconnected {
+  background-color: #FFEBEE;
+  color: #F44336;
+}
+
+.typing-indicator {
+  display: flex;
+  padding: 6px;
+  width: 40px;
+  justify-content: center;
+}
+
+.typing-indicator span {
+  height: 8px;
+  width: 8px;
+  background-color: #9e9ea1;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 1px;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
 

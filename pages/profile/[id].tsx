@@ -12,6 +12,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import LockIcon from '@mui/icons-material/Lock';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PostSection from '@/components/PostSection';
 
 const Profile: React.FC = () => {
   const router = useRouter();
@@ -167,7 +168,7 @@ const Profile: React.FC = () => {
                 src={profileUser.profilePic}
                 alt={profileUser.username || 'Profile Picture'}
                 layout="fill"
-                className="rounded-full object-cover"
+                className="rounded-full object-contain"
               />
             )}
           </div>
@@ -276,17 +277,22 @@ const Profile: React.FC = () => {
                 <span className="font-semibold">{profileUser?.followings.length}</span> following
               </div>
             </div>
+            <div className='font-bold font-nunito mt-2 max-w-[405px]' >
+            {profileUser?.bio}
           </div>
+          </div>
+          
         </div>
-
+ 
         <div className="mt-10 px-8 w-full">
           {(user?._id === paramsId || (!profileUser?.isPrivate || profileUser?.followers.includes(user?._id))) ? (
             <>
               <h3 className="text-xl font-semibold text-center mb-4">Posts</h3>
               <div className="grid grid-cols-3 gap-4 pb-10">
                 {allPost.map((post, index) => (
-                  <div key={index} className="relative h-60 w-full">
-                    {post.img && (
+                  <div key={index} className="relative h-60 w-full ">
+                
+                    {post.img &&  (
                       <Image
                         src={post.img}
                         alt={`Post ${index}`}
@@ -306,6 +312,8 @@ const Profile: React.FC = () => {
         </div>
       </div>
     </div>
+    
+
       <Modal open={openModal} onClose={handleCloseModal}>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-1/4 rounded-lg shadow-lg">
           <ul className="flex flex-col items-center justify-center py-1 font-semibold font-raleway" 
@@ -356,7 +364,7 @@ const Profile: React.FC = () => {
             <p className="text-lg font-semibold">{profileUser?.username}</p>
             <p className='black font-nunito font-semibold mt-2' >Date joined</p>
             <p className="text-gray-600 flex ">
-               <CalendarMonthIcon className='mr-1'/> {new Date(profileUser?.createdAt).toLocaleDateString()}</p>
+               <CalendarMonthIcon className='mr-1'/> {profileUser?.createdAt && new Date(profileUser?.createdAt).toLocaleDateString()}</p>
             <button
               onClick={handleCloseAboutModal}
               className="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 transition-all duration-300 text-black rounded-lg"

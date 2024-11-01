@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import Image from 'next/image';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
@@ -6,6 +6,7 @@ import MessageIcon from '@mui/icons-material/Message';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useUserStore } from '../../lib/store';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 
 
 const SideBar = () => {
@@ -13,12 +14,29 @@ const SideBar = () => {
     const router = useRouter();
     const iconSize = 28;
     const { spotifySession, user } = useUserStore();
+    const [profilePic, setProfilePic] = useState(null);
+    const url = process.env.NEXT_PUBLIC_SERVER_URL;
+
+    useEffect(()=> {
+      const fetchUserData = async () => {
+          try {
+            const response = await axios.get(`${url}/api/user?userId=${user?._id}`);
+            if(response && response.data.profilePic){
+              setProfilePic(response.data.profilePic)
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          } 
+      };
+      fetchUserData();
+    }, [])
+
     const navigation = [
         { href: "/dashboard", icon: <HomeIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
         { href: "#", icon: <SearchIcon style={{ fontSize: iconSize }} className="nav-icon" />, onClick: () => setIsModalVisible(true) },
         { href: "/messages", icon: <MessageIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
         { href: "/notifications", icon: <NotificationsIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
-        { href: `/profile/${user?._id}`, src: spotifySession?.user?.image }
+        { href: `/profile/${user?._id}`,  src: profilePic || ""}
       ];
 
   return (

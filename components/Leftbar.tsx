@@ -1,31 +1,48 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import MessageIcon from '@mui/icons-material/Message';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
 import CloseIcon from '@mui/icons-material/Close';
 import Image from 'next/image';
 import { useUserStore } from '@/lib/store';
+import axios from 'axios';
 
 const Leftbar = () => {
-  const { data: session } = useSession();
+  
+  const [profilePic, setProfilePic] = useState<string | null>(null)
   const router = useRouter();
   const iconSize = 28;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { user } = useUserStore();
+  const url = process.env.NEXT_PUBLIC_SERVER_URL;
+
+  useEffect(()=> {
+    const fetchUserData = async () => {
+        try {
+          const response = await axios.get(`${url}/api/user?userId=${user?._id}`);
+          if(response && response.data.profilePic){
+            setProfilePic(response.data.profilePic)
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        } 
+    };
+
+    fetchUserData();
+  }, [])
 
   const navigation = [
     { name: "Home", href: "/dashboard", icon: <HomeIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
     { name: "Search", href: "#", icon: <SearchIcon style={{ fontSize: iconSize }} className="nav-icon" />, onClick: () => setIsModalVisible(true) },
     { name: "Messages", href: "/messages", icon: <MessageIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
     { name: "Notifications", href: "/notifications", icon: <NotificationsIcon style={{ fontSize: iconSize }} className="nav-icon" /> },
-    { name: "Profile", href: `/profile/${user?._id}`, src: session?.user.image }
+    { name: "Profile", href: `/profile/${user?._id}`, src: profilePic || "" }
   ];
 
   return (
-    <div className='flex flex-col items-start py-6 px-6 sticky top-0 left-0'>
+    <div className='flex flex-col items-start py-6 px-6 sticky top-0 left-0 max-h-screen'>
       <div>
         <h1 className='text-black text-4xl h-[15vh] font-bold font-playfair'>MUZUP</h1>
       </div>
@@ -46,7 +63,7 @@ const Leftbar = () => {
               <span className='mr-4 nav-icon-wrapper'>
                 {item.icon ? item.icon : <Image 
                 src={item?.src} alt='profile pic' 
-                className='w-[35px] h-[35px] rounded-full object-cover' 
+                className='w-[35px] h-[35px] rounded-full object-contain' 
                 width={35}
                 height={35}
                 />}

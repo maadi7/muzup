@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import HomeIcon from '@mui/icons-material/Home';
-import SearchIcon from '@mui/icons-material/Search';
-import MessageIcon from '@mui/icons-material/Message';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useUserStore } from '../../lib/store';
-import { useRouter } from 'next/router';
 import axios from "axios"
 
-const FriendList = ({ friend, onSelectFriend }) => {
+const FriendList = ({ friend }) => {
   const user = useUserStore((state)=> state.user )
   const url = process.env.NEXT_PUBLIC_SERVER_URL;
   const [currentFriend, setCurrentFriend] = useState(null)
@@ -26,22 +20,18 @@ const FriendList = ({ friend, onSelectFriend }) => {
     }
     getUser();
   
-  }, [ friend, user])
+  }, [ friend, user]);
+
+
   const handleClick = () => {
-    console.log('Friend clicked:', currentFriend?.username); // Debug log
-    onSelectFriend(friend.members.find((m) => m !== user?._id));
     console.log(friend.members.find((m) => m !== user?._id));
-    
   }
 
   return (
     <div className=" h-full overflow-y-auto">
-   
-      <div className='flex ' >
-
+      <div className='flex' >
       <ul className='w-full ' >
-
-        
+  
           <li
             key={friend.id}
             onClick={handleClick}
@@ -55,7 +45,7 @@ const FriendList = ({ friend, onSelectFriend }) => {
               />
               <div>
                 <p className="font-semibold font-raleway">{currentFriend?.username}</p>
-                {/* <p className="text-sm text-gray-500 font-nunito">{friend.lastMessage}</p> */}
+               
               </div>
             </div>
           </li>

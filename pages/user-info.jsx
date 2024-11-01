@@ -42,7 +42,7 @@ const UserInfo = () => {
   
     if (status === 'loading') return; // Do nothing while loading
   
-    if (session?.user && user) {
+    if (session?.user && user._id) {
       router.replace('/dashboard');
     }
 
@@ -65,6 +65,9 @@ const UserInfo = () => {
       fetchUserData();
     }
 
+    if(!session?.user){
+      router.replace('/');
+    }
   
     console.log(session);
   }, [session, status, router, setSpotifySession]);

@@ -22,9 +22,7 @@ const Conversations = () => {
     }
     getConversation();
   }, [user, url]);
-  const selectedFriend = conversation.find(friend => 
-    friend.members.includes(selectedFriendId)
-  );
+ 
   const handleSelectFriend = (friendId) => {
     // console.log('Friend selected:', friendId);
     setSelectedFriendId(friendId);
@@ -33,14 +31,15 @@ const Conversations = () => {
     <div className="p-4">
     <h1 className='text-primary text-3xl font-bold font-playfair px-4 py-4'>MUZUP</h1>
     {conversation.map((friend, index) => (
-      <Link     key={index} href={`/messages/${friend.members.find(m => m !== user._id)}`}  >
+      <Link key={index}
+      href={`/messages/${friend.members.find(m => m !== user._id)}`}  >
       <div 
         className={`cursor-pointer }`}
         >
         <FriendList 
           friend={friend} 
           onSelectFriend={handleSelectFriend}
-          isSelected={friend.members.find(m => m !== user._id) === selectedFriendId}
+          // isSelected={friend.members.find(m => m !== user._id) === selectedFriendId}
           />
       </div>
     </Link>

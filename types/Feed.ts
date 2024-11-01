@@ -43,8 +43,10 @@ export type User = {
 };
 
 export interface PostComment{
-    id: string;
+    
+    userId: string;
     text: string;
     name: string;
     _id: string;    
+    createdAt: string
 }

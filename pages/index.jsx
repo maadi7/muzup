@@ -36,11 +36,12 @@ export default function Home() {
   
     if (status === 'loading') return; 
 
-    if(session?.user && !user){
+    if(session?.user && !user?._id){
       router.replace("/user-info");
     }
   
     if (session?.user && user?._id) {
+      console.log("//////",user._id);
       router.replace('/dashboard');
     }
 
@@ -70,9 +71,9 @@ export default function Home() {
     <div>
       <Navbar/>
 
-        <>
+    
         <HomePage/>
-        </>
+    
   
     
       
