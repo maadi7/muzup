@@ -7,8 +7,6 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import { FaHeart, FaRegHeart, FaEllipsisV, FaPaperPlane } from 'react-icons/fa';
 import CloseIcon from '@mui/icons-material/Close';
-import ReplyIcon from '@mui/icons-material/Reply';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import axios from 'axios';
 import noProfile from "../assets/noAvatar.webp";
 import Image from 'next/image';
@@ -33,7 +31,7 @@ interface Reply {
   name: string;
   text: string;
   likes: string[];
-  replies: Reply[];  // Adding nested replies
+  replies: Reply[];    
   createdAt: string;
 }
 
@@ -67,7 +65,8 @@ const ReplyComponent: React.FC<{
   currentUser: User | null;
   users: User[];
   onDelete: () => void;
-}> = ({ reply, postId, commentId, currentUser, users, onDelete }) => {
+  setReplies: any
+}> = ({ reply, postId, commentId, currentUser, users, onDelete, setReplies }) => {
   const url = process.env.NEXT_PUBLIC_SERVER_URL;
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -78,8 +77,10 @@ const ReplyComponent: React.FC<{
   const [showNestedReplies, setShowNestedReplies] = useState(false);
 
   useEffect(() => {
-    setIsLiked(reply.likes?.includes(currentUser?._id || ''));
-  }, [reply.likes, currentUser]);
+    if(currentUser?._id){
+      setIsLiked(reply.likes?.includes(currentUser._id));
+    }
+  }, [reply.likes, currentUser]); 
 
   const handleLikeReply = async () => {
     if (!currentUser) return;
@@ -111,15 +112,18 @@ const ReplyComponent: React.FC<{
     if (replyText.trim() && currentUser) {
       try {
         const { data } = await axios.post(
-          `${url}/api/post/${postId}/comment/${commentId}/reply/${reply._id}/reply`,
+          `${url}/api/post/${postId}/comment/${commentId}/reply`,
           {
             userId: currentUser._id,
             name: currentUser.username,
             text: replyText,
+            replyingTo:commentId,
+            parentComment:commentId,
+            replyToId: reply._id,
           
           }
         );
-        setNestedReplies(prev => [data, ...prev]);
+        setReplies(prev => [data, ...prev]);
         setReplyText('');
         setShowReplyInput(false);
       } catch (error) {
@@ -195,12 +199,13 @@ const ReplyComponent: React.FC<{
           
           {showReplyInput && (
             <form onSubmit={handleNestedReplySubmit} className="mt-2">
-              <MentionInput
-                value={replyText}
-                onChange={setReplyText}
-                users={users}
-                placeholder="Write a reply..."
-              />
+             <MentionInput
+  value={replyText}
+  onChange={setReplyText}
+  users={users}
+  placeholder="Write a reply..."
+  initialMention={reply.name}
+/>
               <button
                 type="submit"
                 className="mt-2 text-blue-500 hover:text-blue-600"
@@ -239,17 +244,41 @@ const ReplyComponent: React.FC<{
   );
 };
 
-const MentionInput: React.FC<{
+interface MentionInputProps {
   value: string;
   onChange: (value: string) => void;
   users: User[];
   placeholder: string;
-}> = ({ value, onChange, users, placeholder }) => {
+  initialMention?: string;
+}
+
+
+const MentionInput: React.FC<MentionInputProps> = ({ 
+  value, 
+  onChange, 
+  users, 
+  placeholder,
+  initialMention 
+}) => {
+  const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
+  // Initialize input with @mention if provided
   useEffect(() => {
-    const lastWord = value.split(' ').pop() || '';
+    if (initialMention && !inputValue) {
+      setInputValue(`@${initialMention} `);
+      onChange(`@${initialMention} `);
+    }
+  }, [initialMention]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
+
+    // Handle mentions suggestions
+    const lastWord = newValue.split(' ').pop() || '';
     if (lastWord.startsWith('@') && lastWord.length > 1) {
       const query = lastWord.slice(1).toLowerCase();
       const filtered = users.filter(user => 
@@ -260,12 +289,14 @@ const MentionInput: React.FC<{
     } else {
       setShowSuggestions(false);
     }
-  }, [value, users]);
+  };
 
   const handleSelectUser = (username: string) => {
-    const words = value.split(' ');
+    const words = inputValue.split(' ');
     words[words.length - 1] = `@${username} `;
-    onChange(words.join(' '));
+    const newValue = words.join(' ');
+    setInputValue(newValue);
+    onChange(newValue);
     setShowSuggestions(false);
   };
 
@@ -273,8 +304,8 @@ const MentionInput: React.FC<{
     <div className="relative w-full">
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={inputValue}
+        onChange={handleInputChange}
         placeholder={placeholder}
         className="w-full p-2 rounded-lg border-2 border-gray-300 focus:border-gray-600 outline-none"
       />
@@ -294,6 +325,7 @@ const MentionInput: React.FC<{
     </div>
   );
 };
+
 
 const ActionModal: React.FC<{
   isOpen: boolean;
@@ -350,11 +382,10 @@ const CommentComponent: React.FC<{
   currentUser: User | null;
   users: User[];
 }> = ({ comment, postId, onDelete, currentUser, users }) => {
+  console.log(comment._id)
   const url = process.env.NEXT_PUBLIC_SERVER_URL;
   const [commentUser, setCommentUser] = useState<User | null>(null);
-
   const [showReplyInput, setShowReplyInput] = useState(false);
-
   const [replyText, setReplyText] = useState('');
   const [replies, setReplies] = useState<Reply[]>(comment.replies || []);
   const [showReplies, setShowReplies] = useState(false);
@@ -384,7 +415,10 @@ const CommentComponent: React.FC<{
         const { data } = await axios.post(`${url}/api/post/${postId}/comment/${comment._id}/reply`, {
           userId: currentUser._id,
           name: currentUser.username,
-          text: replyText
+          text: replyText,
+          replyingTo:comment._id,
+            parentComment:comment._id,
+            replyToId: null,
         });
         setReplies(prev => [data, ...prev]);
         setReplyText('');
@@ -494,6 +528,7 @@ const CommentComponent: React.FC<{
             onChange={setReplyText}
             users={users}
             placeholder="Write a reply..."
+            initialMention={comment.name}
           />
           <button
             type="submit"
@@ -515,6 +550,7 @@ const CommentComponent: React.FC<{
               currentUser={currentUser}
               users={users}
               onDelete={() => setReplies(prev => prev.filter(r => r._id !== reply._id))}
+              setReplies={setReplies}
             />
           ))}
         </div>
