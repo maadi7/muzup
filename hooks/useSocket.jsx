@@ -11,6 +11,8 @@ const useSocket = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState({});
   const [seenMessages, setSeenMessages] = useState({});
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
 
   const socketRef = useRef();
@@ -62,6 +64,32 @@ const useSocket = () => {
       }
     }, 5000); // Try to reconnect every 5 seconds
   }, [user]);
+
+  useEffect(() => {
+    if (socketRef.current) {
+      // Add listener for new notifications
+      socketRef.current.on('newNotification', (notification) => {
+        setNotifications(prev => [notification, ...prev]);
+        setUnreadNotificationsCount(prev => prev + 1);
+      });
+    }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('newNotification');
+      }
+    };
+  }, []);
+
+  const markNotificationsAsRead = useCallback((notificationIds) => {
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit('markNotificationsRead', { 
+        userId: user?._id, 
+        notificationIds 
+      });
+    }
+  }, [user]);
+
 
   useEffect(() => {
     connectSocket();
@@ -152,6 +180,9 @@ const useSocket = () => {
     seenMessages,
     markMessageAsSeen,
     sendTypingStatus,
+    notifications,
+    unreadNotificationsCount,
+    markNotificationsAsRead,
     };
 };
 

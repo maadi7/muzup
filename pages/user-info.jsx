@@ -5,7 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { getUserTopArtists, getUserTopTracks, getUserPlaylists, getUserRecentlyPlayed } from '../utils/spotify';
-import {  signIn, signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import {useUserStore} from "../lib/store"
 
@@ -32,8 +32,11 @@ const UserInfo = () => {
           const { data: user } = await axios.get("http://localhost:5555/api/user/email", {
             params: { email: session.user.email },
           });
-          addUser(user);
-          router.replace("/dashboard")
+          if(user){
+            addUser(user);
+            //router.replace("/dashboard")
+            console.log(user);
+          }
         } catch (error) {
           console.error('Error fetching user data:', error);
         }
@@ -42,7 +45,7 @@ const UserInfo = () => {
   
     if (status === 'loading') return; // Do nothing while loading
   
-    if (session?.user && user._id) {
+    if (session?.user && user?._id) {
       router.replace('/dashboard');
     }
 

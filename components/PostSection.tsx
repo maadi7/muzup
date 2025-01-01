@@ -16,8 +16,7 @@ import SendIcon from '@mui/icons-material/Send';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import { differenceInHours, differenceInDays, differenceInMinutes } from 'date-fns';
 import Link from 'next/link';
-
-
+import LikeInfo from './Post/Modal/LikeInfo';
 
 interface User {
   _id: string;
@@ -75,12 +74,15 @@ const ReplyComponent: React.FC<{
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [nestedReplies, setNestedReplies] = useState<Reply[]>(reply.replies || []);
   const [showNestedReplies, setShowNestedReplies] = useState(false);
+  
+ 
 
   useEffect(() => {
     if(currentUser?._id){
       setIsLiked(reply.likes?.includes(currentUser._id));
     }
   }, [reply.likes, currentUser]); 
+
 
   const handleLikeReply = async () => {
     if (!currentUser) return;
@@ -583,6 +585,8 @@ const PostSection = ({ post }: { post: Post }) => {
   const [like, setLiked] = useState(post.likes.length);
   const [isLike, setIsLiked] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  // const [showLikeModal, setShowLikeModal] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(()=>{
     const fetchAllUsers = async () =>{
@@ -730,6 +734,8 @@ const PostSection = ({ post }: { post: Post }) => {
     }
   };
 
+  
+
   return (
     <div className="mb-6 border-b pb-4">
       <div className="flex items-center mb-4">
@@ -750,7 +756,12 @@ const PostSection = ({ post }: { post: Post }) => {
       </div>
 
       <div className="relative">
-        <img src={post.img} alt="Post" className="w-full h-full mb-4 rounded-lg object-cover" />
+        <Image src={post.img} 
+        alt="Post" 
+        className="w-full h-[500px] mb-4 rounded-lg object-contain bg-black z-10"
+        height={500}
+        width={500}
+        />
         {post.songId && (
           <button 
             onClick={isPlaying ? () => audioRef.current?.pause() : play} 
@@ -769,7 +780,8 @@ const PostSection = ({ post }: { post: Post }) => {
             <button className="mr-1" onClick={LikeHandler}>
               {isLike ? <FavoriteIcon style={{ color: 'red' }} /> : <FavoriteBorderOutlinedIcon />}
             </button>
-            <span>{like}</span>
+            <span className='cursor-pointer' onClick={()=>setIsOpen(true)} >{like}</span>
+            
           </div>
           <div className="flex items-center cursor-pointer" onClick={openModal}>
             <button className="mr-1">
@@ -784,6 +796,10 @@ const PostSection = ({ post }: { post: Post }) => {
           </button>
         </div>
       </div>
+
+      
+        <LikeInfo userIds={post.likes} isOpen={isOpen} setIsOpen={setIsOpen} />
+    
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

@@ -70,13 +70,7 @@ export default function Home() {
   return (
     <div>
       <Navbar/>
-
-    
-        <HomePage/>
-    
-  
-    
-      
+      <HomePage/>
     </div>
   );
 }
