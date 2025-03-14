@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -15,16 +20,6 @@
     --background-start-rgb: 0, 0, 0;
     --background-end-rgb: 0, 0, 0;
   }
-}
-
-body {
-  /* color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb)); */
 }
 
 @layer utilities {
@@ -57,11 +52,11 @@ body {
 }
 
 .online .status-dot {
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 .offline .status-dot {
-  background-color: #9E9E9E;
+  background-color: #9e9e9e;
 }
 
 .connection-status {
@@ -71,13 +66,13 @@ body {
 }
 
 .connection-status.connected {
-  background-color: #E8F5E9;
-  color: #4CAF50;
+  background-color: #e8f5e9;
+  color: #4caf50;
 }
 
 .connection-status.disconnected {
-  background-color: #FFEBEE;
-  color: #F44336;
+  background-color: #ffebee;
+  color: #f44336;
 }
 
 .typing-indicator {
@@ -106,12 +101,55 @@ body {
 }
 
 @keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
-}
-@layer base {
-  :root {
-    --radius: 0.5rem
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
   }
 }
 
+/* ===== Scrollbar CSS ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 6.5px;
+  height: 6.5px;
+}
+
+/* Specifically target iOS devices */
+@media only screen and (-webkit-min-device-pixel-ratio: 2) {
+  ::-webkit-scrollbar {
+    height: 3px; /* Much thinner horizontal scrollbar for iOS */
+  }
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-track:hover {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #babac0;
+  border-radius: 16px;
+  border: 5px solid transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a0a0a5;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: #8a8a8f;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}

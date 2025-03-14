@@ -1,17 +1,17 @@
 // Feed.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
-import CloseIcon from '@mui/icons-material/Close';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import SongSearch from '@/lib/SongSearch';
-import { useUserStore } from '../lib/store';
+import React, { useState, useRef, useEffect } from "react";
+import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
+import CloseIcon from "@mui/icons-material/Close";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import SongSearch from "@/lib/SongSearch";
+import { useUserStore } from "../lib/store";
 import { Post } from "../types/Feed";
 import PostSection from "./PostSection";
-import axios from 'axios';
-import { StoryView, StoryGroup } from './StoryView';
-import Loader from './Loader';
-import { useAudioContext } from '../context/AudioContext'; // Import the hook
+import axios from "axios";
+import { StoryView, StoryGroup } from "./StoryView";
+import Loader from "./Loader";
+import { useAudioContext } from "../context/AudioContext"; // Import the hook
 
 interface Track {
   id: string;
@@ -21,8 +21,14 @@ interface Track {
 }
 
 const Feed: React.FC = () => {
-  const [visibleComments, setVisibleComments] = useState<{ [key: number]: boolean }>({});
-  const [newPost, setNewPost] = useState<{ img: string; caption: string; song?: Track | null }>({ img: '', caption: '', song: null });
+  const [visibleComments, setVisibleComments] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const [newPost, setNewPost] = useState<{
+    img: string;
+    caption: string;
+    song?: Track | null;
+  }>({ img: "", caption: "", song: null });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedSong, setSelectedSong] = useState<Track | null>(null);
@@ -30,7 +36,9 @@ const Feed: React.FC = () => {
   const [allStory, setAllStory] = useState<Array<StoryGroup> | []>([]);
   const [profilePics, setProfilePics] = useState<{ [key: string]: string }>({});
   const { user } = useUserStore();
-  const [openStoryGroupIndex, setOpenStoryGroupIndex] = useState<number | null>(null);
+  const [openStoryGroupIndex, setOpenStoryGroupIndex] = useState<number | null>(
+    null
+  );
   const [currentStoryIndex, setCurrentStoryIndex] = useState<number>(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,19 +49,23 @@ const Feed: React.FC = () => {
   useEffect(() => {
     const getAllTimelinePosts = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:5555/api/post/timeline/${user?._id}`);
+        const { data } = await axios.get(
+          `http://localhost:5555/api/post/timeline/${user?._id}`
+        );
         setAllPost(data);
       } catch (error) {
         console.log(error);
       }
-    }
+    };
     getAllTimelinePosts();
   }, [user?._id]);
 
   useEffect(() => {
     const getAllTimelineStories = async () => {
       try {
-        const { data } = await axios.get(`${url}/api/story/following/${user?._id}`);
+        const { data } = await axios.get(
+          `${url}/api/story/following/${user?._id}`
+        );
         setAllStory(data);
 
         // Fetch profile pictures for each user
@@ -73,7 +85,7 @@ const Feed: React.FC = () => {
       } catch (error) {
         console.log(error);
       }
-    }
+    };
     getAllTimelineStories();
   }, [user?._id]);
 
@@ -82,40 +94,22 @@ const Feed: React.FC = () => {
     console.log(song);
   };
 
-  const scrollLeft = () => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.scrollBy({ left: -200, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.scrollBy({ left: 200, behavior: 'smooth' });
-    }
-  };
-
-  const toggleComments = (postId: number) => {
-    setVisibleComments(prevState => ({
-      ...prevState,
-      [postId]: !prevState[postId]
-    }));
-  };
-
   const handlePostSubmit = async () => {
     if (imageFile) {
       const formData = new FormData();
-      formData.append('file', imageFile);
-      formData.append('upload_preset', 'MuzupApp');
+      formData.append("file", imageFile);
+      formData.append("upload_preset", "MuzupApp");
 
       setLoading(true);
 
       try {
-        const response = await fetch('https://api.cloudinary.com/v1_1/dnl96eqgs/image/upload', {
-          method: 'POST',
-          body: formData,
-        });
+        const response = await fetch(
+          "https://api.cloudinary.com/v1_1/dnl96eqgs/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
 
         const data = await response.json();
         console.log(data);
@@ -124,34 +118,35 @@ const Feed: React.FC = () => {
         const postData = {
           userId: user?._id,
           caption: newPost.caption,
-          img: data.secure_url,  // Ensure the Cloudinary URL is used
-          songId: selectedSong?.id || "",  // Explicitly pass the selected song's ID
+          img: data.secure_url, // Ensure the Cloudinary URL is used
+          songId: selectedSong?.id || "", // Explicitly pass the selected song's ID
         };
 
         try {
-          const { data: postResponse } = await axios.post(`${url}/api/post`, postData);
+          const { data: postResponse } = await axios.post(
+            `${url}/api/post`,
+            postData
+          );
           console.log(postResponse);
-          toast.success('Post submitted successfully!');
+          toast.success("Post submitted successfully!");
         } catch (error) {
-    
           toast.error(error?.message);
         }
-
       } catch (error) {
-        console.error('Error uploading image:', error);
-        toast.error('Error uploading image. Please try again.');
+        console.error("Error uploading image:", error);
+        toast.error("Error uploading image. Please try again.");
       } finally {
         setLoading(false);
       }
     }
 
-    console.log('New Post:', newPost);
-    setNewPost({ img: '', caption: '', song: null });
-    setSelectedSong(null);  // Clear selected song after submission
+    console.log("New Post:", newPost);
+    setNewPost({ img: "", caption: "", song: null });
+    setSelectedSong(null); // Clear selected song after submission
   };
 
   const removeImage = () => {
-    setNewPost({ ...newPost, img: '' });
+    setNewPost({ ...newPost, img: "" });
     setImageFile(null);
   };
 
@@ -168,7 +163,7 @@ const Feed: React.FC = () => {
 
   const openStoryView = (index: number) => {
     stopAllAudio(); // Stop any playing audio
-  
+
     setOpenStoryGroupIndex(index);
     setCurrentStoryIndex(0);
   };
@@ -189,7 +184,8 @@ const Feed: React.FC = () => {
 
   const goToNextStory = () => {
     setCurrentStoryIndex((prevIndex) => {
-      const storyGroup = openStoryGroupIndex !== null ? allStory[openStoryGroupIndex] : null;
+      const storyGroup =
+        openStoryGroupIndex !== null ? allStory[openStoryGroupIndex] : null;
       if (storyGroup && prevIndex < storyGroup.stories.length - 1) {
         return prevIndex + 1;
       } else {
@@ -202,7 +198,7 @@ const Feed: React.FC = () => {
   return (
     <div className="w-full">
       {/* Profile Section with Stories */}
-      <div className="py-4 px-12 relative">
+      {/* <div className="py-4 px-12 relative">
         <button
           className="absolute left-8 top-14 transform -translate-y-1/2"
           onClick={scrollLeft}
@@ -237,19 +233,23 @@ const Feed: React.FC = () => {
         >
           <ArrowForwardIos />
         </button>
-      </div>
+      </div> */}
 
       {/* Post Creation Section */}
-      <div className="px-16 mb-6">
+      <div className="px-16 mb-6 py-10">
         <div className="bg-white p-4 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4 font-raleway">Create a New Post</h3>
+          <h3 className="text-lg font-semibold mb-4 font-raleway">
+            Create a New Post
+          </h3>
           <textarea
             placeholder="Write a caption..."
             value={newPost.caption}
-            onChange={(e) => setNewPost({ ...newPost, caption: e.target.value })}
+            onChange={(e) =>
+              setNewPost({ ...newPost, caption: e.target.value })
+            }
             className="w-full h-32 p-2 border rounded-lg mb-4"
           />
-          
+
           <input
             type="file"
             accept="image/*"
@@ -263,10 +263,14 @@ const Feed: React.FC = () => {
           >
             Upload Image
           </button>
-          
+
           {newPost.img && (
             <div className="relative mb-4">
-              <img src={newPost.img} alt="Preview" className="w-full h-[400px] object-cover rounded-lg" />
+              <img
+                src={newPost.img}
+                alt="Preview"
+                className="w-full h-[400px] object-cover rounded-lg"
+              />
               <button
                 onClick={removeImage}
                 className="absolute top-2 right-2 bg-gray-200 p-1 rounded-full"
@@ -278,8 +282,11 @@ const Feed: React.FC = () => {
           <SongSearch onSelectSong={handleSelectSong} />
           {selectedSong && (
             <div>
-              <h4 className='font-raleway font-bold'>Selected Song:</h4>
-              <p className='font-nunito mt-1 font-semibold'>{selectedSong.name} by {selectedSong.artists.map(artist => artist.name).join(', ')}</p>
+              <h4 className="font-raleway font-bold">Selected Song:</h4>
+              <p className="font-nunito mt-1 font-semibold">
+                {selectedSong.name} by{" "}
+                {selectedSong.artists.map((artist) => artist.name).join(", ")}
+              </p>
             </div>
           )}
           <button
