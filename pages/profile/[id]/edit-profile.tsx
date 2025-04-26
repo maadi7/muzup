@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import axios from 'axios';
-import Image from 'next/image';
-import Leftbar from '@/components/Leftbar';
-import SideBar from '@/components/Messages/SideBar';
-import Loader from '@/components/Loader';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import axios from "axios";
+import Image from "next/image";
+import Leftbar from "@/components/Leftbar";
+import SideBar from "@/components/Messages/SideBar";
+import Loader from "@/components/Loader";
 
 const EditProfile: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
-  const [username, setUsername] = useState('');
-  const [bio, setBio] = useState('');
-  const [profilePic, setProfilePic] = useState('');
+  const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
+  const [profilePic, setProfilePic] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,11 +24,11 @@ const EditProfile: React.FC = () => {
           setLoading(true);
           const response = await axios.get(`${url}/api/user?userId=${id}`);
           const userData = response.data;
-          setUsername(userData.username || '');
-          setBio(userData.bio || '');
-          setProfilePic(userData.profilePic || '');
+          setUsername(userData.username || "");
+          setBio(userData.bio || "");
+          setProfilePic(userData.profilePic || "");
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error("Error fetching user data:", error);
         } finally {
           setLoading(false);
         }
@@ -37,11 +37,6 @@ const EditProfile: React.FC = () => {
 
     fetchUserData();
   }, [id]);
-
-
-  useEffect(()=>{
-
-  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -61,13 +56,16 @@ const EditProfile: React.FC = () => {
 
       if (imageFile) {
         const formData = new FormData();
-        formData.append('file', imageFile);
-        formData.append('upload_preset', 'MuzupApp');
+        formData.append("file", imageFile);
+        formData.append("upload_preset", "MuzupApp");
 
-        const cloudinaryResponse = await fetch('https://api.cloudinary.com/v1_1/dnl96eqgs/image/upload', {
-          method: 'POST',
-          body: formData,
-        });
+        const cloudinaryResponse = await fetch(
+          "https://api.cloudinary.com/v1_1/dnl96eqgs/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
         const cloudinaryData = await cloudinaryResponse.json();
         imageUrl = cloudinaryData.secure_url;
       }
@@ -81,7 +79,7 @@ const EditProfile: React.FC = () => {
 
       router.push(`/profile/${id}`);
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error("Error updating profile:", error);
     } finally {
       setLoading(false);
     }
@@ -105,7 +103,12 @@ const EditProfile: React.FC = () => {
         <h1 className="text-2xl font-bold mb-5 font-nunito">Edit Profile</h1>
         <form onSubmit={handleSubmit} className="space-y-4 ">
           <div>
-            <label htmlFor="username" className="block mb-2 font-semibold font-raleway">Username</label>
+            <label
+              htmlFor="username"
+              className="block mb-2 font-semibold font-raleway"
+            >
+              Username
+            </label>
             <input
               type="text"
               id="username"
@@ -116,7 +119,12 @@ const EditProfile: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="bio" className="block mb-2 font-semibold font-raleway">Bio</label>
+            <label
+              htmlFor="bio"
+              className="block mb-2 font-semibold font-raleway"
+            >
+              Bio
+            </label>
             <textarea
               id="bio"
               value={bio}
@@ -126,7 +134,12 @@ const EditProfile: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="profilePic" className="block mb-2 font-semibold font-raleway">Profile Picture</label>
+            <label
+              htmlFor="profilePic"
+              className="block mb-2 font-semibold font-raleway"
+            >
+              Profile Picture
+            </label>
             <input
               type="file"
               id="profilePic"
@@ -136,12 +149,24 @@ const EditProfile: React.FC = () => {
             />
             {previewUrl && (
               <div className="mt-4">
-                <Image src={previewUrl} alt="Preview" width={100} height={100} className="rounded-full" />
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  width={100}
+                  height={100}
+                  className="rounded-full"
+                />
               </div>
             )}
             {!previewUrl && profilePic && (
               <div className="mt-4">
-                <Image src={profilePic} alt="Current Profile" width={100} height={100} className="rounded-full" />
+                <Image
+                  src={profilePic}
+                  alt="Current Profile"
+                  width={100}
+                  height={100}
+                  className="rounded-full"
+                />
               </div>
             )}
           </div>

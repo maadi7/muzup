@@ -12,6 +12,8 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import LockIcon from "@mui/icons-material/Lock";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Post } from "@/types/Post";
+import ProfilePosts from "@/components/Post/ProfilePosts";
 
 const Profile: React.FC = () => {
   const router = useRouter();
@@ -22,7 +24,7 @@ const Profile: React.FC = () => {
   >("Follow");
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [allPost, setAllPost] = useState<any[]>([]);
+  const [allPost, setAllPost] = useState<Post[]>([]);
   const { user } = useUserStore();
   const [openAboutModal, setOpenAboutModal] = useState(false);
   const handleOpenAboutModal = () => setOpenAboutModal(true);
@@ -80,7 +82,6 @@ const Profile: React.FC = () => {
 
     try {
       setLoading(true);
-
       let response;
       if (followStatus === "Follow") {
         response = await axios.put(`${url}/api/user/${paramsId}/follow`, {
@@ -106,9 +107,11 @@ const Profile: React.FC = () => {
           prevUser
             ? {
                 ...prevUser,
-                followers: prevUser.followers.filter((id) => id !== user._id),
+                followers: prevUser.followers.filter(
+                  (id: any) => id !== user._id
+                ),
                 pendingRequests: prevUser.pendingRequests.filter(
-                  (id) => id !== user._id
+                  (id: any) => id !== user._id
                 ),
               }
             : null
@@ -126,11 +129,6 @@ const Profile: React.FC = () => {
           { requesterId: paramsId }
         );
         setFollowStatus("Follow");
-        // Update local user state to reflect rejected request
-      }
-
-      if (response?.status === 200) {
-        console.log("Follow action successful");
       }
     } catch (error) {
       console.error("Error handling follow action:", error);
@@ -186,16 +184,14 @@ const Profile: React.FC = () => {
   return (
     <div className="flex w-full h-full flex-col">
       <div className="flex h-full">
-        <div className="hidden md:block min-w-1/6 h-screen sticky border-r-2">
+        <div className="hidden md:block min-w-1/6 h-screen sticky top-0 border-r-2">
           <Leftbar />
         </div>
-
-        <div className="block md:hidden h-screen sticky border-r-2">
+        <div className="block md:hidden h-screen sticky top-0  border-r-2">
           <SideBar />
         </div>
-
-        <div className="flex flex-col items-center justify-center w-full h-full">
-          <div className="flex flex-1 justify-center mt-10">
+        <div className="flex flex-col items-start px-2 md:items-center justify-center w-full h-full">
+          <div className="flex flex-col md:flex-row flex-1 justify-center mt-10">
             <div className="w-36 h-36 relative mr-10">
               {profileUser?.profilePic && (
                 <Image
@@ -330,17 +326,10 @@ const Profile: React.FC = () => {
                 <h3 className="text-xl font-semibold text-center mb-4">
                   Posts
                 </h3>
-                <div className="grid grid-cols-3 gap-4 pb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
                   {allPost.map((post, index) => (
                     <div key={index} className="relative h-60 w-full ">
-                      {post.img && (
-                        <Image
-                          src={post.img}
-                          alt={`Post ${index}`}
-                          layout="fill"
-                          className="object-cover rounded-md"
-                        />
-                      )}
+                      <ProfilePosts profilePost={post} />
                     </div>
                   ))}
                 </div>

@@ -1,7 +1,7 @@
 // hooks/useNotifications.js
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useUserStore } from '../lib/store';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useUserStore } from "../lib/store";
 
 const useNotifications = (page = 1) => {
   const { user } = useUserStore();
@@ -16,10 +16,13 @@ const useNotifications = (page = 1) => {
 
     setLoading(true);
     try {
-      const response = await axios.get(`${url}/api/notifications?page=${pageNum}`, {
-        withCredentials: true
-      });
-      
+      const response = await axios.get(
+        `${url}/api/notifications?page=${pageNum}`,
+        {
+          withCredentials: true,
+        }
+      );
+
       setNotifications(response.data.notifications);
       setUnreadCount(response.data.unreadCount);
       setLoading(false);
@@ -31,21 +34,25 @@ const useNotifications = (page = 1) => {
 
   const markNotificationsAsRead = async (notificationIds) => {
     try {
-      await axios.post(`${url}/api/notifications/mark-read`, { notificationIds }, {
-        withCredentials: true
-      });
-      
+      await axios.post(
+        `${url}/api/notifications/mark-read`,
+        { notificationIds },
+        {
+          withCredentials: true,
+        }
+      );
+
       // Update local state
-      setNotifications(prev => 
-        prev.map(notification => 
-          notificationIds.includes(notification._id) 
-            ? { ...notification, read: true } 
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notificationIds.includes(notification._id)
+            ? { ...notification, read: true }
             : notification
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - notificationIds.length));
+      setUnreadCount((prev) => Math.max(0, prev - notificationIds.length));
     } catch (err) {
-      console.error('Failed to mark notifications as read', err);
+      console.error("Failed to mark notifications as read", err);
     }
   };
 
@@ -59,7 +66,7 @@ const useNotifications = (page = 1) => {
     loading,
     error,
     fetchNotifications,
-    markNotificationsAsRead
+    markNotificationsAsRead,
   };
 };
 

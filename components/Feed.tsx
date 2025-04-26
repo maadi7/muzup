@@ -140,7 +140,6 @@ const Feed: React.FC = () => {
       }
     }
 
-    console.log("New Post:", newPost);
     setNewPost({ img: "", caption: "", song: null });
     setSelectedSong(null); // Clear selected song after submission
   };

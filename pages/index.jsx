@@ -1,48 +1,50 @@
-"use client"
+"use client";
 
-import { useEffect } from 'react';
-import Navbar from '@/components/Navbar';
-import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
-import HomePage from '@/components/HomePage';
-import {useUserStore} from "../lib/store"
-import axios from 'axios';
-
+import { useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import HomePage from "@/components/HomePage";
+import { useUserStore } from "../lib/store";
+import axios from "axios";
 
 export default function Home() {
   const router = useRouter();
   const addUser = useUserStore((state) => state?.addUser);
-  const user = useUserStore((state) => state.user)
+  const user = useUserStore((state) => state.user);
   const setSpotifySession = useUserStore((state) => state.setSpotifySession);
   const { data: session, status } = useSession();
- 
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (session?.user) {
         try {
           console.log(session.user.email);
-          const { data: user } = await axios.get("http://localhost:5555/api/user/email", {
-            params: { email: session.user.email },
-          });
+          const { data: user } = await axios.get(
+            "http://localhost:5555/api/user/email",
+            {
+              params: { email: session.user.email },
+            }
+          );
           console.log(user);
           addUser(user);
-          router.replace("/dashboard")
+          if (user) {
+            router.replace("/dashboard");
+          }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error("Error fetching user data:", error);
         }
       }
     };
-  
-    if (status === 'loading') return; 
 
-    if(session?.user && !user?._id){
+    if (status === "loading") return;
+
+    if (session?.user && !user?._id) {
       router.replace("/user-info");
     }
-  
+
     if (session?.user && user?._id) {
-      console.log("//////",user._id);
-      router.replace('/dashboard');
+      router.replace("/dashboard");
     }
 
     if (session) {
@@ -57,7 +59,7 @@ export default function Home() {
         },
       });
     }
-   
+
     if (session?.user) {
       fetchUserData();
     }
@@ -65,12 +67,10 @@ export default function Home() {
     console.log(session);
   }, [session, status, router, setSpotifySession]);
 
-
-
   return (
     <div>
-      <Navbar/>
-      <HomePage/>
+      <Navbar />
+      <HomePage />
     </div>
   );
 }

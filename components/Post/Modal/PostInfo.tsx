@@ -215,7 +215,12 @@ const PostInfo = ({ post, isOpen, onClose }: PostPopupProps) => {
               </div>
               <h2 className="text-xl font-semibold">{user?.username}</h2>
             </div>
-            <button onClick={onClose}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+            >
               <CloseIcon />
             </button>
           </div>

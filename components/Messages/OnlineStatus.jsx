@@ -1,15 +1,11 @@
 // components/OnlineStatus.js
-import React from 'react';
-import useSocket from '../../hooks/useSocket';
+import React from "react";
 
-const OnlineStatus = ({ userId }) => {
-  const { onlineUsers } = useSocket();
-  const isOnline = onlineUsers.some(user => user.userId === userId);
-
+const OnlineStatus = ({ isOnline }) => {
   return (
-    <div className={`online-status ${isOnline ? 'online' : 'offline'}`}>
+    <div className={`online-status ${isOnline ? "online" : "offline"}`}>
       <span className="status-dot"></span>
-      {isOnline ? 'Online' : 'Offline'}
+      {isOnline ? "Online" : "Offline"}
     </div>
   );
 };

@@ -1,52 +1,56 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import axios from 'axios';
-import { getUserTopArtists, getUserTopTracks, getUserPlaylists, getUserRecentlyPlayed } from '../utils/spotify';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import {useUserStore} from "../lib/store"
-
+import React, { useState, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+import {
+  getUserTopArtists,
+  getUserTopTracks,
+  getUserPlaylists,
+  getUserRecentlyPlayed,
+} from "../utils/spotify";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useUserStore } from "../lib/store";
 
 const UserInfo = () => {
-
   const addUser = useUserStore((state) => state?.addUser);
-  const user = useUserStore((state) => state.user)
+  const user = useUserStore((state) => state.user);
   const setSpotifySession = useUserStore((state) => state.setSpotifySession);
   const { data: session, status } = useSession();
-  const [username, setUsername] = useState('');
-  const [birthdate, setBirthdate] = useState('');
+  const [username, setUsername] = useState("");
+  const [birthdate, setBirthdate] = useState("");
   const [profilePic, setProfilePic] = useState(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [profilePicPreview, setProfilePicPreview] = useState(null);
   const [errors, setErrors] = useState({});
   const router = useRouter();
-  
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (session?.user) {
         try {
-          const { data: user } = await axios.get("http://localhost:5555/api/user/email", {
-            params: { email: session.user.email },
-          });
-          if(user){
+          const { data: user } = await axios.get(
+            "http://localhost:5555/api/user/email",
+            {
+              params: { email: session.user.email },
+            }
+          );
+          if (user) {
             addUser(user);
-            //router.replace("/dashboard")
-            console.log(user);
+            router.replace("/dashboard");
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error("Error fetching user data:", error);
         }
       }
     };
-  
-    if (status === 'loading') return; // Do nothing while loading
-  
+
+    if (status === "loading") return; // Do nothing while loading
+
     if (session?.user && user?._id) {
-      router.replace('/dashboard');
+      router.replace("/dashboard");
     }
 
     if (session) {
@@ -68,20 +72,16 @@ const UserInfo = () => {
       fetchUserData();
     }
 
-    if(!session?.user){
-      router.replace('/');
+    if (!session?.user) {
+      router.replace("/");
     }
-  
+
     console.log(session);
   }, [session, status, router, setSpotifySession]);
-  
-
-
 
   if (!session) {
     return null; // Return null or a loading spinner while checking session
   }
-
 
   const handleUsernameChange = (e) => {
     setUsername(e.target.value);
@@ -117,12 +117,12 @@ const UserInfo = () => {
     const birthYear = new Date(birthdate).getFullYear();
 
     if (username.length < 3) {
-      errors.username = 'Username must be at least 3 characters long';
-      toast.error('Username must be at least 3 characters long');
+      errors.username = "Username must be at least 3 characters long";
+      toast.error("Username must be at least 3 characters long");
     }
     if (!birthdate) {
-      errors.birthdate = 'Birthdate is required';
-      toast.error('Birthdate is required');
+      errors.birthdate = "Birthdate is required";
+      toast.error("Birthdate is required");
     } else if (birthYear >= currentYear) {
       errors.birthdate = `Birth year must be less than ${currentYear}`;
       toast.error(`Birth year must be less than ${currentYear}`);
@@ -140,10 +140,18 @@ const UserInfo = () => {
       try {
         // Get top artists using the access token
         const accessToken = session?.accessToken;
-        const topArtistsData = accessToken ? await getUserTopArtists(accessToken) : [];
-        const topTracksData = accessToken ? await getUserTopTracks(accessToken) : [];
-        const playListData = accessToken ? await getUserPlaylists(accessToken) : [];
-        const recentlyPlayedData = accessToken ? await getUserRecentlyPlayed(accessToken) : [];
+        const topArtistsData = accessToken
+          ? await getUserTopArtists(accessToken)
+          : [];
+        const topTracksData = accessToken
+          ? await getUserTopTracks(accessToken)
+          : [];
+        const playListData = accessToken
+          ? await getUserPlaylists(accessToken)
+          : [];
+        const recentlyPlayedData = accessToken
+          ? await getUserRecentlyPlayed(accessToken)
+          : [];
         console.log(recentlyPlayedData);
 
         // Extract the names of the artists
@@ -151,18 +159,18 @@ const UserInfo = () => {
         const topTracks = topTracksData.items;
         const playList = playListData.items;
         const recentlyPlayed = recentlyPlayedData.items;
-        
-        const extractedArtists = topArtists.map(artist => ({
+
+        const extractedArtists = topArtists.map((artist) => ({
           id: artist.id,
-          followers: artist.followers.total, 
+          followers: artist.followers.total,
           genres: artist.genres,
-          images: artist.images.map(image => image.url), 
+          images: artist.images.map((image) => image.url),
           name: artist.name,
           popularity: artist.popularity,
-          type: artist.type
+          type: artist.type,
         }));
 
-        const extractedTopTracks = topTracks.map(track => ({
+        const extractedTopTracks = topTracks.map((track) => ({
           id: track.id,
           name: track.name,
           popularity: track.popularity,
@@ -171,16 +179,16 @@ const UserInfo = () => {
             album_type: track.album.album_type,
             id: track.album.id,
             name: track.album.name,
-            images: track.album.images.map(image => image.url)
+            images: track.album.images.map((image) => image.url),
           },
           artists: track.artists.map((artist) => ({
             id: artist.id,
             name: artist.name,
-            type: artist.type
+            type: artist.type,
           })),
           preview_url: track.preview_url,
           type: track.type,
-          track_number: track.track_number
+          track_number: track.track_number,
         }));
 
         const extractedRecentlyPlayed = recentlyPlayed.map((song) => ({
@@ -193,33 +201,35 @@ const UserInfo = () => {
             album_type: song.track.album.album_type,
             id: song.track.album.id,
             name: song.track.album.name,
-            images: song.track.album.images.map(image => image.url)
+            images: song.track.album.images.map((image) => image.url),
           },
           artists: song.track.artists.map((artist) => ({
             id: artist.id,
             name: artist.name,
-            type: artist.type
+            type: artist.type,
           })),
           preview_url: song.track.preview_url,
           type: song.track.type,
-          track_number: song.track.track_number
-        })); 
+          track_number: song.track.track_number,
+        }));
 
         console.log("username:", username);
-        console.log('Terms Accepted:', recentlyPlayed);
-        
+        console.log("Terms Accepted:", recentlyPlayed);
 
-        const response = await axios.post(`http://localhost:5555/api/auth/form-sumbit`, {
-          username: username,
-          email: session?.user?.email,
-          birthdate: birthdate,
-          profilePic: finalProfilePic,
-          topArtists: extractedArtists,
-          topTracks: extractedTopTracks,
-          recentlyPlayed: extractedRecentlyPlayed
-        });
+        const response = await axios.post(
+          `http://localhost:5555/api/auth/form-sumbit`,
+          {
+            username: username,
+            email: session?.user?.email,
+            birthdate: birthdate,
+            profilePic: finalProfilePic,
+            topArtists: extractedArtists,
+            topTracks: extractedTopTracks,
+            recentlyPlayed: extractedRecentlyPlayed,
+          }
+        );
         if (response.status === 201) {
-          toast.success('Form submitted successfully');
+          toast.success("Form submitted successfully");
           addUser({
             _id: response.data._id, // Assuming the response contains the user ID
             username,
@@ -233,8 +243,8 @@ const UserInfo = () => {
             followings: response.data.followings,
             pendingRequests: response.data.pendingRequests,
             requestedTo: response.data.requestedTo,
-            createdAt: new Date(response.data.createdAt), 
-            updatedAt: new Date(response.data.updatedAt), 
+            createdAt: new Date(response.data.createdAt),
+            updatedAt: new Date(response.data.updatedAt),
           });
 
           setSpotifySession({
@@ -245,29 +255,27 @@ const UserInfo = () => {
               email: session.user.email,
               image: session.user.image,
               name: session.user.name,
-            }
+            },
           });
 
-          setUsername('');
-          setBirthdate('');
+          setUsername("");
+          setBirthdate("");
           setProfilePic(null);
           setTermsAccepted(false);
           setProfilePicPreview(session?.user?.image || null);
           setErrors({});
-                  // Redirect to dashboard
-        router.push('/dashboard');
-            console.log(response.data);
+          // Redirect to dashboard
+          router.push("/dashboard");
+          console.log(response.data);
         } else {
-          toast.error('Failed to submit the form');
+          toast.error("Failed to submit the form");
           console.log(response.data);
         }
       } catch (error) {
         if (error?.response?.status === 401) {
           toast.error(error.response.data);
-        } 
-       
-        else {
-          toast.error('An error occurred while submitting the form');
+        } else {
+          toast.error("An error occurred while submitting the form");
         }
 
         console.log(error?.response?.status);
@@ -280,7 +288,9 @@ const UserInfo = () => {
   return (
     <>
       <ToastContainer />
-      <h1 className="text-3xl font-bold mb-6 text-center text-primary mt-10">MUZUP</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-primary mt-10">
+        MUZUP
+      </h1>
       <div className="max-w-md mx-auto p-6 rounded-lg shadow-md mt-20">
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -296,7 +306,10 @@ const UserInfo = () => {
             )}
 
             {/* Username Input */}
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700"
+            >
               Username
             </label>
             <input
@@ -316,7 +329,10 @@ const UserInfo = () => {
 
           {/* Birthdate Input */}
           <div className="mb-4">
-            <label htmlFor="birthdate" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="birthdate"
+              className="block text-sm font-medium text-gray-700"
+            >
               Birthdate
             </label>
             <input
@@ -335,7 +351,10 @@ const UserInfo = () => {
 
           {/* Profile Picture Input */}
           <div className="mb-4">
-            <label htmlFor="profilePic" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="profilePic"
+              className="block text-sm font-medium text-gray-700"
+            >
               Profile Picture (Optional)
             </label>
             <input
@@ -360,7 +379,10 @@ const UserInfo = () => {
                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 required
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+              <label
+                htmlFor="terms"
+                className="ml-2 block text-sm text-gray-900"
+              >
                 I accept the terms and conditions
               </label>
             </div>
@@ -374,10 +396,9 @@ const UserInfo = () => {
             Submit
           </button>
         </form>
-        
       </div>
     </>
   );
-}
+};
 
 export default UserInfo;

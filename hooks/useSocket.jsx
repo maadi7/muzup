@@ -1,239 +1,283 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import io from "socket.io-client";
+// hooks/useSocket.js - Updated
+import { useState, useEffect, useCallback, useRef } from "react";
+import { io } from "socket.io-client";
 import { useUserStore } from "../lib/store";
 
-const socketURL = "http://localhost:5555";
-let socket;
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5555";
+
+let socketInstance = null;
 
 const useSocket = () => {
   const { user } = useUserStore();
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState({});
-  const [seenMessages, setSeenMessages] = useState({});
+  const [messageStatuses, setMessageStatuses] = useState({});
+  const [conversationStatuses, setConversationStatuses] = useState({}); // Store message statuses by conversation
   const [notifications, setNotifications] = useState([]);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  const [messageStatuses, setMessageStatuses] = useState({});
 
-  const socketRef = useRef();
-  const reconnectInterval = useRef();
+  const socketRef = useRef(null);
+  const reconnectTimerRef = useRef(null);
 
-  const connectSocket = useCallback(() => {
-    console.log("Attempting to connect socket...");
-    socket = io(socketURL, {
-      transports: ["websocket"],
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-    });
+  // Initialize or get socket instance
+  const getSocket = useCallback(() => {
+    if (!socketInstance) {
+      socketInstance = io(SOCKET_URL, {
+        transports: ["websocket"],
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        autoConnect: false,
+      });
+    }
+    return socketInstance;
+  }, []);
+
+  // Connect to socket server
+  const connect = useCallback(() => {
+    const socket = getSocket();
     socketRef.current = socket;
 
-    socket.on("connect", () => {
-      console.log("Socket connected");
-      setIsConnected(true);
-      if (user?._id) {
-        socket.emit("addUser", user._id);
-      }
-    });
-
-    socket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
-      setIsConnected(false);
-    });
-
-    socket.on("connect_error", (error) => {
-      console.log("Connection error:", error);
-      setIsConnected(false);
-    });
-
-    socket.on("getUsers", (users) => {
-      console.log("Online users:", users);
-      setOnlineUsers(users);
-    });
-
-    socket.on("messageSeen", ({ messageId }) => {
-      console.log(messageId, "seen");
-      setMessageStatuses((prev) => ({
-        ...prev,
-        [messageId]: "seen",
-      }));
-    });
-
-    // Clear any existing interval
-    if (reconnectInterval.current) {
-      clearInterval(reconnectInterval.current);
-    }
-
-    // Set up reconnection interval
-    reconnectInterval.current = setInterval(() => {
-      if (!socket.connected) {
-        console.log("Attempting to reconnect...");
-        socket.connect();
-      }
-    }, 5000);
-  }, [user]);
-
-  useEffect(() => {
-    if (socketRef.current) {
-      socketRef.current.on("newNotification", (notification) => {
-        setNotifications((prev) => [notification, ...prev]);
-        setUnreadNotificationsCount((prev) => prev + 1);
-      });
+    if (!socket.connected) {
+      socket.connect();
     }
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.off("newNotification");
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+      }
+    };
+  }, [getSocket]);
+
+  // Initialize socket listeners
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const socket = getSocket();
+    socketRef.current = socket;
+
+    // Connection events
+    const onConnect = () => {
+      console.log("Socket connected");
+      setIsConnected(true);
+      socket.emit("addUser", user._id);
+    };
+
+    const onDisconnect = (reason) => {
+      console.log(`Socket disconnected: ${reason}`);
+      setIsConnected(false);
+
+      // Attempt reconnection
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+      }
+
+      reconnectTimerRef.current = setTimeout(() => {
+        console.log("Attempting to reconnect...");
+        socket.connect();
+      }, 3000);
+    };
+
+    const onConnectError = (error) => {
+      console.error("Connection error:", error);
+      setIsConnected(false);
+    };
+
+    // Online users
+    const onGetUsers = (users) => {
+      setOnlineUsers(users);
+    };
+
+    // Message status updates
+    const onMessageStatus = ({ messageId, status, conversationId }) => {
+      console.log(
+        `Message ${messageId} status changed to ${status} in conversation ${conversationId}`
+      );
+
+      // Update both global message status and conversation-specific status
+      setMessageStatuses((prev) => ({
+        ...prev,
+        [messageId]: status,
+      }));
+
+      // Update conversation-specific status tracking
+      setConversationStatuses((prev) => {
+        const updatedConvo = { ...prev };
+        if (!updatedConvo[conversationId]) {
+          updatedConvo[conversationId] = {};
+        }
+        updatedConvo[conversationId][messageId] = status;
+        return updatedConvo;
+      });
+    };
+
+    // Typing indicators
+    const onUserTyping = ({ senderId, conversationId }) => {
+      setTypingUsers((prev) => ({ ...prev, [conversationId]: senderId }));
+    };
+
+    const onUserStoppedTyping = ({ senderId, conversationId }) => {
+      setTypingUsers((prev) => {
+        const updated = { ...prev };
+        delete updated[conversationId];
+        return updated;
+      });
+    };
+
+    // Notifications
+    const onNewNotification = (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadNotificationsCount((prev) => prev + 1);
+    };
+
+    // Register event listeners
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
+    socket.on("getUsers", onGetUsers);
+    socket.on("messageStatus", onMessageStatus);
+    socket.on("userTyping", onUserTyping);
+    socket.on("userStoppedTyping", onUserStoppedTyping);
+    socket.on("newNotification", onNewNotification);
+
+    // Connect if not already connected
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    // Add user to online users when connected
+    if (socket.connected && user?._id) {
+      socket.emit("addUser", user._id);
+    }
+
+    // Cleanup function
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
+      socket.off("getUsers", onGetUsers);
+      socket.off("messageStatus", onMessageStatus);
+      socket.off("userTyping", onUserTyping);
+      socket.off("userStoppedTyping", onUserStoppedTyping);
+      socket.off("newNotification", onNewNotification);
+    };
+  }, [user, getSocket]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
       }
     };
   }, []);
 
-  const markNotificationsAsRead = useCallback(
-    (notificationIds) => {
-      if (socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit("markNotificationsRead", {
-          userId: user?._id,
-          notificationIds,
-        });
-      }
-    },
-    [user]
-  );
-
-  useEffect(() => {
-    connectSocket();
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-      if (reconnectInterval.current) {
-        clearInterval(reconnectInterval.current);
-      }
-    };
-  }, [connectSocket]);
-
+  // Send a message
   const sendMessage = useCallback(
-    (message) => {
-      if (socketRef.current && socketRef.current.connected) {
-        // Set initial status as 'sent'
-        console.log(message, "111");
+    ({ sender, receiverId, text, conversationId, messageId }) => {
+      const socket = socketRef.current;
+      if (socket?.connected) {
+        // Update local state first for immediate feedback
         setMessageStatuses((prev) => ({
           ...prev,
-          [message._id]: "sent",
+          [messageId]: "sent",
         }));
-        socketRef.current.emit("sendMessage", message);
+
+        // Update conversation-specific state
+        setConversationStatuses((prev) => {
+          const updatedConvo = { ...prev };
+          if (!updatedConvo[conversationId]) {
+            updatedConvo[conversationId] = {};
+          }
+          updatedConvo[conversationId][messageId] = "sent";
+          return updatedConvo;
+        });
+
+        // Send message through socket
+        socket.emit("sendMessage", {
+          sender,
+          receiverId,
+          text,
+          conversationId,
+          messageId,
+        });
       } else {
-        connectSocket();
+        console.warn("Socket not connected, reconnecting...");
+        connect();
       }
     },
-    [connectSocket]
+    [connect]
   );
 
-  // Clean up the subscribeToMessages function in useSocket.js
+  // Subscribe to incoming messages
   const subscribeToMessages = useCallback(
     (callback) => {
-      if (socketRef.current) {
-        socketRef.current.on("getMessage", (message) => {
-          // Mark message as delivered when received
-          if (message.messageId || message._id) {
-            socketRef.current.emit("messageDelivered", {
-              messageId: message.messageId || message._id,
-              senderId: message.sender,
-              receiverId: user?._id,
-            });
-          }
-          callback(message);
-        });
-      }
-      return () => {
-        if (socketRef.current) {
-          socketRef.current.off("getMessage");
+      const socket = socketRef.current;
+
+      if (!socket) return () => {};
+
+      const onGetMessage = (message) => {
+        // Mark as delivered when we receive it
+        if (message.messageId && user?._id) {
+          socket.emit("messageDelivered", {
+            messageId: message.messageId,
+            senderId: message.sender,
+            receiverId: user._id,
+            conversationId: message.conversationId,
+          });
+
+          // Update conversation-specific status right away
+          setConversationStatuses((prev) => {
+            const updatedConvo = { ...prev };
+            if (!updatedConvo[message.conversationId]) {
+              updatedConvo[message.conversationId] = {};
+            }
+            updatedConvo[message.conversationId][message.messageId] =
+              "delivered";
+            return updatedConvo;
+          });
         }
+
+        // Call the provided callback with the message
+        callback(message);
+      };
+
+      socket.on("getMessage", onGetMessage);
+
+      // Return cleanup function
+      return () => {
+        socket.off("getMessage", onGetMessage);
       };
     },
     [user]
   );
 
-  // Remove the duplicate getMessage handler in the useEffect below
-  // And remove the duplicate getMessage handler from your useEffect
-
-  useEffect(() => {
-    if (socketRef.current) {
-      socketRef.current.on("userTyping", ({ senderId, conversationId }) => {
-        setTypingUsers((prev) => ({ ...prev, [conversationId]: senderId }));
-      });
-
-      socketRef.current.on(
-        "userStoppedTyping",
-        ({ senderId, conversationId }) => {
-          setTypingUsers((prev) => {
-            const updated = { ...prev };
-            delete updated[conversationId];
-            return updated;
-          });
-        }
-      );
-
-      socket.on("initializeMessageStatuses", (statuses) => {
-        setMessageStatuses((prev) => ({
-          ...prev,
-          ...statuses,
-        }));
-      });
-
-      socketRef.current.on("messageStatus", ({ messageId, status }) => {
-        console.log(messageId, "status", status);
-        setMessageStatuses((prev) => ({
-          ...prev,
-          [messageId]: status,
-        }));
-        console.log(messageStatuses);
-      });
-    }
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.off("userTyping");
-        socketRef.current.off("userStoppedTyping");
-        socketRef.current.off("messageSeenUpdate");
-      }
-    };
-  }, [connectSocket]);
-
-  const initializeMessageStatuses = useCallback((statuses) => {
-    setMessageStatuses((prev) => ({
-      ...prev,
-      ...statuses,
-    }));
-  }, []);
-
-  const sendTypingStatus = useCallback(
-    (senderId, receiverId, conversationId, isTyping) => {
-      if (socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit(isTyping ? "typing" : "stopTyping", {
-          senderId,
-          receiverId,
-          conversationId,
-        });
-      }
-    },
-    []
-  );
+  // Mark message as seen
   const markMessageAsSeen = useCallback(
     (senderId, receiverId, conversationId, messageId) => {
-      if (socketRef.current && socketRef.current.connected) {
-        console.log(`Marking message as seen: ${messageId}`);
+      const socket = socketRef.current;
 
-        // Immediately update local state
+      if (socket?.connected) {
+        // Update local state first
         setMessageStatuses((prev) => ({
           ...prev,
           [messageId]: "seen",
         }));
 
-        // Then notify server
-        socketRef.current.emit("messageSeen", {
-          senderId,
+        // Update conversation-specific status
+        setConversationStatuses((prev) => {
+          const updatedConvo = { ...prev };
+          if (!updatedConvo[conversationId]) {
+            updatedConvo[conversationId] = {};
+          }
+          updatedConvo[conversationId][messageId] = "seen";
+          return updatedConvo;
+        });
+
+        // Notify server
+        socket.emit("messageSeen", {
+          sender: senderId,
           receiverId,
           conversationId,
           messageId,
@@ -243,28 +287,139 @@ const useSocket = () => {
     []
   );
 
+  // Send typing status
+  const sendTypingStatus = useCallback(
+    (senderId, receiverId, conversationId, isTyping) => {
+      const socket = socketRef.current;
+
+      if (socket?.connected) {
+        socket.emit(isTyping ? "typing" : "stopTyping", {
+          senderId,
+          receiverId,
+          conversationId,
+        });
+      }
+    },
+    []
+  );
+
+  // Mark notifications as read
+  const markNotificationsRead = useCallback(
+    (notificationIds) => {
+      const socket = socketRef.current;
+
+      if (socket?.connected && user?._id) {
+        socket.emit("markNotificationsRead", {
+          userId: user._id,
+          notificationIds,
+        });
+
+        // Update local state
+        setNotifications((prev) =>
+          prev.map((notification) =>
+            notificationIds.includes(notification._id)
+              ? { ...notification, read: true }
+              : notification
+          )
+        );
+
+        // Update unread count
+        const readCount = notificationIds.length;
+        setUnreadNotificationsCount((prev) => Math.max(0, prev - readCount));
+      }
+    },
+    [user]
+  );
+
+  // Initialize message statuses - Updated to handle conversation-specific storage
+  const initializeMessageStatuses = useCallback((statuses, conversationId) => {
+    // Update global message statuses
+    setMessageStatuses((prev) => ({
+      ...prev,
+      ...statuses,
+    }));
+
+    // Update conversation-specific status tracking
+    setConversationStatuses((prev) => {
+      const updatedConvo = { ...prev };
+      if (!updatedConvo[conversationId]) {
+        updatedConvo[conversationId] = {};
+      }
+      // Merge new statuses with any existing ones for this conversation
+      updatedConvo[conversationId] = {
+        ...updatedConvo[conversationId],
+        ...statuses,
+      };
+      return updatedConvo;
+    });
+  }, []);
+
+  // Get message status - Now checks conversation-specific status first
   const getMessageStatus = useCallback(
-    (messageId) => {
+    (messageId, conversationId) => {
+      // First try to get conversation-specific status
+      if (
+        conversationId &&
+        conversationStatuses[conversationId] &&
+        conversationStatuses[conversationId][messageId]
+      ) {
+        return conversationStatuses[conversationId][messageId];
+      }
+      // Fall back to global status
       return messageStatuses[messageId] || "sent";
     },
-    [messageStatuses]
+    [messageStatuses, conversationStatuses]
   );
+
+  // Check if a user is online
+  const isUserOnline = useCallback(
+    (userId) => {
+      return onlineUsers.some((user) => user[0] === userId);
+    },
+    [onlineUsers]
+  );
+
+  // Fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    if (!user?._id) return;
+
+    try {
+      const response = await fetch(`/api/notifications/${user._id}`);
+      const data = await response.json();
+
+      setNotifications(data);
+      setUnreadNotificationsCount(
+        data.filter((notification) => !notification.read).length
+      );
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  }, [user]);
+
+  // Initial fetch of notifications
+  useEffect(() => {
+    if (user?._id) {
+      fetchNotifications();
+    }
+  }, [user, fetchNotifications]);
 
   return {
     isConnected,
     onlineUsers,
+    isUserOnline,
     sendMessage,
     subscribeToMessages,
     typingUsers,
-    seenMessages,
-    markMessageAsSeen,
     sendTypingStatus,
-    notifications,
-    unreadNotificationsCount,
-    markNotificationsAsRead,
+    markMessageAsSeen,
     getMessageStatus,
     messageStatuses,
+    conversationStatuses,
     initializeMessageStatuses,
+    notifications,
+    unreadNotificationsCount,
+    markNotificationsRead,
+    fetchNotifications,
   };
 };
 
