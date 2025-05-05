@@ -107,7 +107,7 @@ const ReplyComponent: React.FC<{
             replyToId: reply._id,
           }
         );
-        setReplies((prev) => [data, ...prev]);
+        setReplies((prev: any) => [data, ...prev]);
         setReplyText("");
         setShowReplyInput(false);
       } catch (error) {

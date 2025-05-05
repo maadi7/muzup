@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Badge, Avatar } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import CloseIcon from "@mui/icons-material/Close";
-import useSocket from "../../hooks/useSocket";
+import useSocket from "../../hooks//useSocket";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
@@ -18,10 +18,10 @@ const NotificationCenter = () => {
   const dropdownRef = useRef(null);
   const router = useRouter();
 
+  console.log(notifications, "/////");
   useEffect(() => {
     // Fetch notifications when component mounts
     fetchNotifications();
-
     // Set up an interval to periodically fetch notifications
     const interval = setInterval(fetchNotifications, 60000); // Every minute
 
